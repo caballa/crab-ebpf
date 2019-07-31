@@ -1,6 +1,8 @@
 # PREVAIL 
-## a Polynomial-Runtime EBPF Verifier using an Abstract Interpretation Layer
 
+**Important**: this repo is based on https://github.com/vbpf/ebpf-verifier but it keeps Crab as an external dependency so that it is still straightforward to verify eBPF programs with new Crab features and domains.
+
+## a Polynomial-Runtime EBPF Verifier using an Abstract Interpretation Layer
 A new eBPF verifier.
 
 ## Getting Started
