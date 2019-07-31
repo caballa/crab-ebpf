@@ -1,7 +1,20 @@
-# PREVAIL 
-## a Polynomial-Runtime EBPF Verifier using an Abstract Interpretation Layer
+# crab-ebpf
 
-A new eBPF verifier.
+A eBPF verifier using the [Crab](https://github.com/seahorn/crab) library.
+
+
+-------------------------------------------------------------------------------
+
+**Important**: Except the code related to the Crab library, the rest
+of code is from [Prevail](https://github.com/vbpf/ebpf-verifier) as it
+was on June 2019!. The only purpose of this repo is to allow running
+Crab domains on the set of benchmarks used for the 2019 PLDI
+submission. **This repo is not maintained**, so please do not expect any fix if
+a eBPF program cannot be supported. However, if you think that
+there is a problem with Crab-related code then please open in issue
+in [Crab](https://github.com/seahorn/crab).
+
+-------------------------------------------------------------------------------
 
 ## Getting Started
 

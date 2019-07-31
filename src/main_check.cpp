@@ -1,7 +1,8 @@
 #include <iostream>
 #include <vector>
 
-#include <crab/common/debug.hpp>
+#include <crab/support/debug.hpp>
+#include <crab/support/stats.hpp>
 
 #include <boost/functional/hash.hpp>
 
@@ -30,8 +31,6 @@ int main(int argc, char **argv)
 {
     // Parse command line arguments:
     
-    crab::CrabEnableWarningMsg(false);
-
     CLI::App app{"A new eBPF verifier"};
 
     std::string filename;
@@ -45,15 +44,26 @@ int main(int argc, char **argv)
 
     std::string domain="zoneCrab";
     std::set<string> doms{"stats", "linux", "rcp"};
-    for (auto const [name, desc] : domain_descriptions())
+    for (auto const& [name, desc] : domain_descriptions())
         doms.insert(name);
     app.add_set("-d,--dom,--domain", domain, doms, "Abstract domain")->type_name("DOMAIN");
 
     bool verbose = false;
+    bool run_backward = false;
+    bool enable_liveness = false;
+    bool crab_warnings  = false;
     app.add_flag("-i", global_options.print_invariants, "Print invariants");
     app.add_flag("-f", global_options.print_failures, "Print verifier's failure logs");
-    app.add_flag("-v", verbose, "Print both invariants and failures");
-
+    app.add_flag("-r", global_options.print_all_checks, "Print verifier's results");
+    app.add_flag("-a", global_options.print_all_checks_verbose,
+		 "Print all verifier's checks");        
+    app.add_flag("-v", verbose, "Print both invariants and all checks");
+    app.add_flag("-s", global_options.stats, "Print verifier stats");
+    app.add_flag("-b", run_backward, "Run forward+backward analysis");
+    // This might be imprecise with relational domains
+    app.add_flag("-u", enable_liveness, "Enable liveness analysis");
+    app.add_flag("-w", crab_warnings, "Enable crab warnings");
+    
     std::string asmfile;
     app.add_option("--asm", asmfile, "Print disassembly to FILE")->type_name("FILE");
     std::string dotfile;
@@ -63,9 +73,21 @@ int main(int argc, char **argv)
     app.add_option("--size", size, "size of blowup");
 
     CLI11_PARSE(app, argc, argv);
-    if (verbose)
-        global_options.print_invariants = global_options.print_failures = true;
+    
+    if (verbose) {
+        global_options.print_invariants = \
+	  global_options.print_all_checks_verbose = \
+	  global_options.print_failures = true;
+    }
 
+    global_options.liveness = enable_liveness;
+
+    crab::CrabEnableWarningMsg(crab_warnings);
+
+    //crab::CrabEnableLog("reference");
+    //crab::CrabEnableLog("crab-print-types");
+    //crab::CrabEnableVerbosity(3);
+    
     // Main program
 
     if (filename == "@headers") {
@@ -131,8 +153,12 @@ int main(int argc, char **argv)
     } else {
         const auto [res, seconds] = (domain == "linux")
             ? bpf_verify_program(raw_prog.info.program_type, raw_prog.prog)
-            : abs_validate(cfg, domain, raw_prog.info);
-        std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
+	  : abs_validate(cfg, domain, run_backward, raw_prog.info);
+        //std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
+	std::cout << (res ? "TRUE" : "FALSE") << "," << seconds << "," << resident_set_size_kb() << "\n";
+	if (global_options.stats) {
+	  crab::CrabStats::PrintBrunch(crab::outs());
+	}
         return !res;
     }
     return 0;

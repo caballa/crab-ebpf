@@ -8,6 +8,8 @@ struct global_options_t
     bool check_semantic_reachability;
     bool print_invariants;
     bool print_failures;
+    bool print_all_checks;
+    bool print_all_checks_verbose;  
     bool liveness;
 };
 

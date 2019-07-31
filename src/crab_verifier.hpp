@@ -14,7 +14,7 @@
  * \return A pair (passed, number_of_seconds)
  * 
  */
-std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, std::string domain_name, program_info info);
+std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, std::string domain_name, bool run_backward, program_info info);
 
 /** A mapping from available abstract domains to their description.
  * 

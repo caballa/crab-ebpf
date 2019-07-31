@@ -54,7 +54,7 @@ static basic_block_t& add_child(cfg_t& cfg, basic_block_t& block, std::string su
 
 using crab::cfg::debug_info;
 
-using var_t     = ikos::variable<ikos::z_number, varname_t>;
+using var_t     = crab::variable<ikos::z_number, varname_t>;
 using lin_cst_t = ikos::linear_constraint<ikos::z_number, varname_t>;
 
 /** Encoding of memory regions and types.
@@ -109,10 +109,60 @@ struct array_dom_t {
     { }
 
     template<typename T, typename W>
-    vector<basic_block_t*> load(basic_block_t& block, dom_t data_reg, const T& offset, W width, cfg_t& cfg) {
-        block.array_load(data_reg.value, values, offset, width);
+    vector<basic_block_t*> load(basic_block_t& block, dom_t data_reg, const T& offset,
+				W width /*number of bytes*/, cfg_t& cfg) {
+      
+        // JN: values/regions/offsets are arrays of 64-bit
+        // integers. data_reg.value/region/offset are integers of 64
+        // bits. However, the semantics of array_load is that the lhs
+        // of the load (i.e., data_reg.value/region/offset) should be
+        // an integer of *width bytes*. The Crab type-checker does not
+        // currently check for this which is a bug. However, the
+        // array_expansion/array_adaptive domains do check for that
+        // and they raise an error. The solution is to add an extra
+        // cast instruction.
+        #if 1
+        auto mk_integer_temp = [this](std::string prefix, unsigned bitwidth) {
+				 std::string name(prefix + std::string("_i") + std::to_string(bitwidth));
+				 var_t temp{this->vfac[name], crab::INT_TYPE, bitwidth};
+				 return temp;
+			       };
+
+	if (width <= 0) {
+	  CRAB_ERROR("load instruction can only have non-zero positive widths");
+	}
+
+	W bitwidth = width*8;
+	if (data_reg.value.get_type().is_integer() &&
+	    bitwidth < data_reg.value.get_type().get_integer_bitwidth()) {
+	  var_t tmp{mk_integer_temp(data_reg.value.name().str(), (unsigned)bitwidth)};
+	  block.array_load(tmp, values, offset, width /*bytes*/);
+	  block.sext(tmp, data_reg.value);
+	} else {
+	  block.array_load(data_reg.value, values, offset, width);		  
+	}
+	if (data_reg.region.get_type().is_integer() &&
+	    8*1 < data_reg.region.get_type().get_integer_bitwidth()) {
+	  var_t tmp{mk_integer_temp(data_reg.value.name().str(), 8*1)};
+	  block.array_load(tmp, regions, offset, 1 /*bytes*/);
+	  block.sext(tmp, data_reg.region);
+	} else {
+	  block.array_load(data_reg.region, regions, offset, 1);
+	} 
+	if (data_reg.offset.get_type().is_integer() &&
+	    bitwidth < data_reg.offset.get_type().get_integer_bitwidth()) {
+	  var_t tmp{mk_integer_temp(data_reg.value.name().str(), (unsigned)bitwidth)};
+	  block.array_load(tmp, offsets, offset, width /*bytes*/);
+	  block.sext(tmp, data_reg.offset);
+	} else {
+	  block.array_load(data_reg.offset, offsets, offset, width);
+	} 
+	#else
+	// This produces crab code that is not well-typed
+        block.array_load(data_reg.value, values, offset, width);	
         block.array_load(data_reg.region, regions, offset, 1);
         block.array_load(data_reg.offset, offsets, offset, width);
+	#endif 
         return { &block };
     }
 
@@ -121,7 +171,7 @@ struct array_dom_t {
         var_t ub{vfac["ub"], crab::INT_TYPE, 64};
         block.assign(lb, offset);
         block.assign(ub, offset + width);
-        block.array_store_range(regions, lb, ub, v, 1);
+        block.array_store_range(regions, lb, ub-1, v, 1);
     }
 
     void mark_region(basic_block_t& block, lin_exp_t offset, const var_t v, int width) {
@@ -135,7 +185,7 @@ struct array_dom_t {
         block.assign(lb, offset);
         block.assign(ub, offset + width);
 
-        block.array_store_range(regions, lb, ub, T_NUM, 1);
+        block.array_store_range(regions, lb, ub-1, T_NUM, 1);
 
         var_t scratch{vfac["scratch"], crab::INT_TYPE, 64};
         block.havoc(scratch);
@@ -163,7 +213,14 @@ struct array_dom_t {
             return {&num_only, &pointer_only};
         } else {
             block.assertion(data_reg.region == T_NUM, di);
-            var_t scratch{vfac["scratch"], crab::INT_TYPE, (unsigned int)width};
+	    // JN: we create two variables with the same name
+	    // "scratch" but different bitwidths This is not allowed
+	    // by crab.  It's ok to define the variable "scratch" with
+	    // max bitwidth. When an array store, we can still write
+	    // only width bits from "scratch".
+	    
+            //var_t scratch{vfac["scratch" + std::to_string(width)], crab::INT_TYPE, (unsigned int)width};
+            var_t scratch{vfac["scratch" + std::to_string(width)], crab::INT_TYPE, 64};	    
             block.havoc(scratch);
             block.array_store(values, offset, scratch, width);
             block.havoc(scratch);
@@ -202,7 +259,7 @@ public:
     vector<basic_block_t*> exec();
     instruction_builder_t(machine_t& machine, Instruction ins, basic_block_t& block, cfg_t& cfg) :
         machine(machine), ins(ins), block(block), cfg(cfg), pc(first_num(block)),
-        di{"pc", (unsigned int)pc, 0}
+        di{"pc", (unsigned int)pc, 0, 0}
         {
         }
 private:

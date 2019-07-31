@@ -212,7 +212,7 @@ static BpfProgType section_to_progtype(std::string section, std::string path) {
         { "sk_skb", BpfProgType::SK_SKB },
         { "sk_msg", BpfProgType::SK_MSG },
     };
-	for (const auto [prefix, t] : prefixes) {
+	for (const auto& [prefix, t] : prefixes) {
 		if (section.find(prefix) == 0)
 			return t;
 	}

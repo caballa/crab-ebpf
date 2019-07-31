@@ -1,3 +1,4 @@
+CRAB_BRANCH := crab
 
 BUILDDIR := build
 BINDIR := .
@@ -15,7 +16,7 @@ MAIN_OBJECTS := $(MAIN_SOURCES:${SRCDIR}/%.cpp=${BUILDDIR}/%.o)
 
 OBJECTS := $(filter-out $(MAIN_OBJECTS) $(TEST_OBJECTS),$(ALL_OBJECTS))
 
-CRABDIR := $(abspath external/crab)
+CRABDIR := $(abspath external/$(CRAB_BRANCH))
 LDD := ${CRABDIR}/install/ldd
 INSTALL := ${CRABDIR}/install/crab
 
@@ -38,12 +39,14 @@ LDFLAGS := -Wl,-rpath,${INSTALL}/lib/
 LDFLAGS += -Wl,-rpath,${MODINSTALL}/lib/
 
 UNAME := $(shell uname)
-ifeq ($(UNAME),Darwin)
-    LIBCRAB = $(INSTALL)/lib/libCrab.dylib
-else
-    LIBCRAB = $(INSTALL)/lib/libCrab.so
-    LDFLAGS += -Wl,--disable-new-dtags 
-endif
+
+LIBCRAB = $(INSTALL)/lib/libCrab.a
+# ifeq ($(UNAME),Darwin)
+#     LIBCRAB = $(INSTALL)/lib/libCrab.dylib
+# else
+#     LIBCRAB = $(INSTALL)/lib/libCrab.so
+#     LDFLAGS += -Wl,--disable-new-dtags 
+# endif
 
 LDLIBS := $(LIBCRAB)
 
@@ -75,9 +78,20 @@ LDLIBS += \
     $(LDD)/lib/libepd.a \
     $(LDD)/lib/libldd.a \
 
+# assume libmpfr, libgmpx, etc are in /usr/local/lib
+LDFLAGS += -L/usr/local/lib
 LDLIBS += -lmpfr -lgmpxx -lgmp -lm -lstdc++ 
 
-CXXFLAGS := -Wall -Wfatal-errors -O2 -g3 -std=c++17 -I external -D$(MOD)_DOMAINS #  -Werror does not work well in Linux
+CXXFLAGS := -Wall -Wfatal-errors -O2 -g -std=c++17 -I external -D$(MOD)_DOMAINS #  -Werror does not work well in Linux
+
+ifeq ($(UNAME),Darwin)
+CXXFLAGS += -Wno-nullability-completeness
+CXXFLAGS += -isystem /usr/local/include 
+CXXFLAGS += -isysroot $(shell xcrun --show-sdk-path)
+# boost, gmpx, mpfr, etc
+CXXFLAGS += -I /opt/homebrew/include
+LDFLAGS += -L /opt/homebrew/lib
+endif
 
 CRABFLAGS := \
     -Wno-unused-local-typedefs -Wno-unused-function -Wno-inconsistent-missing-override \
@@ -112,9 +126,10 @@ crab_clean:
 	rm -rf $(CRABDIR)/build $(CRABDIR)/install
 
 crab_install:
+	git clone -b v2.0 https://github.com/seahorn/crab.git $(CRABDIR)
 	mkdir -p $(CRABDIR)/build
 	cd $(CRABDIR)/build \
-	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DUSE_LDD=ON -DUSE_$(MOD)=ON ../ \
+	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DCRAB_USE_LDD=ON -DCRAB_USE_$(MOD)=ON ../ \
 	    && cmake --build . --target ldd && cmake ../ \
 	    && cmake --build . --target $(mod) && cmake ../ \
 	    && cmake --build . --target install
