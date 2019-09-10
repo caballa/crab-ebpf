@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <crab/common/debug.hpp>
+#include <crab/common/stats.hpp>
 
 #include <boost/functional/hash.hpp>
 
@@ -52,7 +53,9 @@ int main(int argc, char **argv)
     bool verbose = false;
     app.add_flag("-i", global_options.print_invariants, "Print invariants");
     app.add_flag("-f", global_options.print_failures, "Print verifier's failure logs");
-    app.add_flag("-v", verbose, "Print both invariants and failures");
+    app.add_flag("-a", global_options.print_all_checks, "Print all verifier's checks");    
+    app.add_flag("-v", verbose, "Print both invariants and all checks");
+    app.add_flag("-s", global_options.stats, "Print verifier stats");    
 
     std::string asmfile;
     app.add_option("--asm", asmfile, "Print disassembly to FILE")->type_name("FILE");
@@ -64,7 +67,7 @@ int main(int argc, char **argv)
 
     CLI11_PARSE(app, argc, argv);
     if (verbose)
-        global_options.print_invariants = global_options.print_failures = true;
+        global_options.print_invariants = global_options.print_all_checks = global_options.print_failures = true;
 
     // Main program
 
@@ -133,6 +136,9 @@ int main(int argc, char **argv)
             ? bpf_verify_program(raw_prog.info.program_type, raw_prog.prog)
             : abs_validate(cfg, domain, raw_prog.info);
         std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
+	if (global_options.stats) {
+	  crab::CrabStats::PrintBrunch(crab::outs());
+	}
         return !res;
     }
     return 0;

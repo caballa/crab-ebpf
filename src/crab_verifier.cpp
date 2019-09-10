@@ -77,18 +77,20 @@ std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, string domain_name,
     int nwarn = checks.get_total_warning() + checks.get_total_error();
     if (global_options.print_invariants) {
         for (string label : sorted_labels(cfg)) {
-            pre_printer(label);
+	    pre_printer(label);
             cfg.get_node(label).write(crab::outs());
             post_printer(label);
         }
     }
 
+    if (global_options.print_all_checks ||
+	(global_options.print_failures && nwarn > 0)) {
+      checks.write(crab::outs());
+    } 
+    
     if (nwarn > 0) {
-        if (global_options.print_failures) {
-            checks.write(crab::outs());
-        }
-        return {false, elapsed_secs};
-    }
+      return {false, elapsed_secs};
+    } 
     return {true, elapsed_secs};
 }
 
@@ -113,7 +115,12 @@ static auto extract_post(analyzer_t& analyzer)
 template<typename analyzer_t>
 static checks_db check(analyzer_t& analyzer)
 {
-    int verbose = global_options.print_failures ? 2 : 0;
+    int verbose = 0;
+    if (global_options.print_failures)
+      verbose = 2;
+    if (global_options.print_all_checks)
+      verbose = 3;
+    
     using checker_t = intra_checker<analyzer_t>;
     using prop_checker_ptr = typename checker_t::prop_checker_ptr;
     checker_t checker(analyzer, {
@@ -158,7 +165,7 @@ static checks_db analyze(cfg_t& cfg, printer_t& pre_printer, printer_t& post_pri
     if (global_options.print_invariants) {
         pre_printer.connect([pre=extract_pre(analyzer)](const string& label) {
             dom_t inv = pre.at(label);
-            crab::outs() << "\n" << inv << "\n";
+	    crab::outs() << "\n" << inv << "\n";
         });
         post_printer.connect([post=extract_post(analyzer)](const string& label) {
             dom_t inv = post.at(label);
