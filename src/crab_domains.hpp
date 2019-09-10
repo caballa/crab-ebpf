@@ -67,14 +67,21 @@ namespace crab {
     typedef pointer_constraint<ikos::variable<z_number, varname_t> > z_ptr_cst_t;
     typedef linear_constraint_system<ikos::z_number, varname_t> z_lin_cst_sys_t;
     typedef interval<ikos::z_number> z_interval_t;
-    
+
+    struct DBMGraphParams {
+      enum { chrome_dijkstra = 1 };
+      enum { widen_restabilize = 1 };
+      enum { special_assign = 1 };
+      enum { close_bounds_inline = 0 };
+      typedef safe_i64 Wt;
+      typedef AdaptGraph<Wt> graph_t;
+    };
+
     // Numerical domains over integers
     using z_interval_domain_t = interval_domain<ikos::z_number,varname_t>;
     using z_ric_domain_t = numerical_congruence_domain<z_interval_domain_t>;
-    using SafeInt = DBM_impl::SafeInt64DefaultParams<ikos::z_number, DBM_impl::GraphRep::adapt_ss>;
-    using z_dbm_domain_t = SparseDBM<ikos::z_number,varname_t,SafeInt>;
-    using z_sdbm_domain_t = SplitDBM<ikos::z_number,varname_t,SafeInt>;
-
+    using z_dbm_domain_t  = SparseDBM<ikos::z_number,varname_t,DBMGraphParams>;
+    using z_sdbm_domain_t = SplitDBM<ikos::z_number,varname_t,DBMGraphParams>;
     using z_boxes_domain_t = boxes_domain<ikos::z_number,varname_t>;
     using z_dis_interval_domain_t = dis_interval_domain<ikos::z_number, varname_t >;
     using z_box_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_INT>;
@@ -88,22 +95,6 @@ namespace crab {
     using z_term_dis_int_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_dis_interval_domain_t> >;
     using z_num_domain_t = reduced_numerical_domain_product2<z_term_dis_int_t,z_sdbm_domain_t,reduced_product_impl::term_dbm_params>;
     using z_num_boxes_domain_t = reduced_numerical_domain_product2<z_boxes_domain_t,z_sdbm_domain_t>;
-
-    // Pointer domains over integers
-    typedef nullity_domain<ikos::z_number, varname_t> z_nullity_domain_t;
-    // Numerical x pointer domains over integers
-    typedef numerical_nullity_domain<z_sdbm_domain_t> z_num_null_domain_t;
-    // Boolean-numerical domain over integers
-    typedef flat_boolean_numerical_domain<z_dbm_domain_t> z_bool_num_domain_t;
-    typedef flat_boolean_numerical_domain<z_interval_domain_t> z_bool_interval_domain_t;    
-    // Arrays domains
-    typedef array_sparse_graph_domain<z_sdbm_domain_t,z_interval_domain_t> z_ag_sdbm_intv_t;
-    typedef array_sparse_graph_domain<z_num_null_domain_t,z_nullity_domain_t> z_ag_num_null_t;
-    typedef array_smashing<z_dis_interval_domain_t> z_as_dis_int_t;
-    typedef array_smashing<z_sdbm_domain_t> z_as_sdbm_t;
-    typedef array_smashing<z_num_null_domain_t> z_as_num_null_t;
-    typedef array_smashing<z_bool_num_domain_t> z_as_bool_num_t;
-    typedef array_expansion_domain<z_term_domain_t> z_ae_term_int_t;
     // machine arithmetic domains
     using z_wrapped_interval_domain_t = wrapped_interval_domain<ikos::z_number, varname_t>;
   } 
