@@ -114,7 +114,7 @@ crab_clean:
 crab_install:
 	mkdir -p $(CRABDIR)/build
 	cd $(CRABDIR)/build \
-	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DUSE_LDD=ON -DUSE_$(MOD)=ON ../ \
+	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DBUILD_CRAB_LIBS_SHARED=ON -DUSE_LDD=ON -DUSE_$(MOD)=ON ../ \
 	    && cmake --build . --target ldd && cmake ../ \
 	    && cmake --build . --target $(mod) && cmake ../ \
 	    && cmake --build . --target install
