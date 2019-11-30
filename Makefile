@@ -38,12 +38,14 @@ LDFLAGS := -Wl,-rpath,${INSTALL}/lib/
 LDFLAGS += -Wl,-rpath,${MODINSTALL}/lib/
 
 UNAME := $(shell uname)
-ifeq ($(UNAME),Darwin)
-    LIBCRAB = $(INSTALL)/lib/libCrab.dylib
-else
-    LIBCRAB = $(INSTALL)/lib/libCrab.so
-    LDFLAGS += -Wl,--disable-new-dtags 
-endif
+
+LIBCRAB = $(INSTALL)/lib/libCrab.a
+# ifeq ($(UNAME),Darwin)
+#     LIBCRAB = $(INSTALL)/lib/libCrab.dylib
+# else
+#     LIBCRAB = $(INSTALL)/lib/libCrab.so
+#     LDFLAGS += -Wl,--disable-new-dtags 
+# endif
 
 LDLIBS := $(LIBCRAB)
 
@@ -114,7 +116,7 @@ crab_clean:
 crab_install:
 	mkdir -p $(CRABDIR)/build
 	cd $(CRABDIR)/build \
-	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DBUILD_CRAB_LIBS_SHARED=ON -DUSE_LDD=ON -DUSE_$(MOD)=ON ../ \
+	    && cmake -DCMAKE_INSTALL_PREFIX=../install/ -DCRAB_BUILD_LIBS_SHARED=ON -DCRAB_USE_LDD=ON -DCRAB_USE_$(MOD)=ON ../ \
 	    && cmake --build . --target ldd && cmake ../ \
 	    && cmake --build . --target $(mod) && cmake ../ \
 	    && cmake --build . --target install
