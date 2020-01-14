@@ -51,11 +51,13 @@ int main(int argc, char **argv)
     app.add_set("-d,--dom,--domain", domain, doms, "Abstract domain")->type_name("DOMAIN");
 
     bool verbose = false;
+    bool run_backward = false;
     app.add_flag("-i", global_options.print_invariants, "Print invariants");
     app.add_flag("-f", global_options.print_failures, "Print verifier's failure logs");
     app.add_flag("-a", global_options.print_all_checks, "Print all verifier's checks");    
     app.add_flag("-v", verbose, "Print both invariants and all checks");
-    app.add_flag("-s", global_options.stats, "Print verifier stats");    
+    app.add_flag("-s", global_options.stats, "Print verifier stats");
+    app.add_flag("-b", run_backward, "Run forward+backward analysis");        
 
     std::string asmfile;
     app.add_option("--asm", asmfile, "Print disassembly to FILE")->type_name("FILE");
@@ -134,7 +136,7 @@ int main(int argc, char **argv)
     } else {
         const auto [res, seconds] = (domain == "linux")
             ? bpf_verify_program(raw_prog.info.program_type, raw_prog.prog)
-            : abs_validate(cfg, domain, raw_prog.info);
+	  : abs_validate(cfg, domain, run_backward, raw_prog.info);
         std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
 	if (global_options.stats) {
 	  crab::CrabStats::PrintBrunch(crab::outs());

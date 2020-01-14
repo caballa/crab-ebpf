@@ -19,6 +19,7 @@
 #include <crab/checkers/assertion.hpp>
 #include <crab/checkers/checker.hpp>
 #include <crab/analysis/dataflow/assumptions.hpp>
+#include <crab/analysis/bwd_analyzer.hpp>
 
 #include "config.hpp"
 #include "asm_cfg.hpp"
@@ -41,7 +42,7 @@ using namespace crab::analyzer;
 using namespace crab::domains;
 using namespace crab::domain_impl;
 
-static checks_db analyze(string domain_name, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer);
+static checks_db analyze(string domain_name, bool run_backward, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer);
 
 static vector<string> sorted_labels(cfg_t& cfg)
 {
@@ -57,7 +58,7 @@ static vector<string> sorted_labels(cfg_t& cfg)
     return labels;
 }
 
-std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, string domain_name, program_info info)
+std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, string domain_name, bool run_backward, program_info info)
 {
     variable_factory_t vfac;
     cfg_t cfg(entry_label(), ARR);
@@ -69,7 +70,7 @@ std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, string domain_name,
     using namespace std;
     clock_t begin = clock();
 
-    checks_db checks = analyze(domain_name, cfg, pre_printer, post_printer);
+    checks_db checks = analyze(domain_name, run_backward, cfg, pre_printer, post_printer);
 
     clock_t end = clock();
     double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
@@ -130,7 +131,7 @@ static checks_db check(analyzer_t& analyzer)
     return checker.get_all_checks();
 }
 
-static checks_db dont_analyze(cfg_t& cfg, printer_t& printer, printer_t& post_printer)
+static checks_db dont_analyze(bool run_backward, cfg_t& cfg, printer_t& printer, printer_t& post_printer)
 {
     return {};
 }
@@ -148,20 +149,25 @@ void check_semantic_reachability(cfg_t& cfg, analyzer_t& analyzer, checks_db& c)
 }
 
 template<typename dom_t>
-static checks_db analyze(cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer)
+static checks_db analyze(bool run_backward, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer)
 {
     dom_t::clear_global_state();
-    using analyzer_t = intra_fwd_analyzer<cfg_ref<cfg_t>, dom_t>;
+    //using analyzer_t = intra_fwd_analyzer<cfg_ref<cfg_t>, dom_t>;
+    using analyzer_t = intra_forward_backward_analyzer<cfg_ref<cfg_t>, dom_t>;
     
     liveness<typename analyzer_t::cfg_t> live(cfg);
     if (global_options.liveness) {
         live.exec();
     }
 
-    analyzer_t analyzer(cfg, dom_t::top(), &live);
-    
-    analyzer.run();
+    //analyzer_t analyzer(cfg, dom_t::top(), &live);
+    //analyzer.run();
 
+    analyzer_t analyzer(cfg);
+    typename analyzer_t::assumption_map_t assumptions;
+    bool only_forward = !run_backward;
+    analyzer.run(dom_t::top(), only_forward, assumptions, &live);
+    
     if (global_options.print_invariants) {
         pre_printer.connect([pre=extract_pre(analyzer)](const string& label) {
             dom_t inv = pre.at(label);
@@ -181,7 +187,7 @@ static checks_db analyze(cfg_t& cfg, printer_t& pre_printer, printer_t& post_pri
 }
 
 struct domain_desc {
-    std::function<checks_db(cfg_t&, printer_t&, printer_t&)> analyze;
+    std::function<checks_db(bool, cfg_t&, printer_t&, printer_t&)> analyze;
     string description;
 };
 
@@ -240,8 +246,8 @@ map<string, string> domain_descriptions()
     return res;
 }
 
-static checks_db analyze(string domain_name, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer)
+static checks_db analyze(string domain_name, bool run_backward, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer)
 {
-    checks_db res = domains.at(domain_name).analyze(cfg, pre_printer, post_printer);
+    checks_db res = domains.at(domain_name).analyze(run_backward, cfg, pre_printer, post_printer);
     return res;
 }
