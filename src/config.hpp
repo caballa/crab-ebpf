@@ -9,6 +9,7 @@ struct global_options_t
     bool print_invariants;
     bool print_failures;
     bool print_all_checks;
+    bool print_all_checks_verbose;  
     bool liveness;
 };
 

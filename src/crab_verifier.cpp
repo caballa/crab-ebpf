@@ -85,6 +85,7 @@ std::tuple<bool, double> abs_validate(Cfg const& simple_cfg, string domain_name,
     }
 
     if (global_options.print_all_checks ||
+	global_options.print_all_checks_verbose ||
 	(global_options.print_failures && nwarn > 0)) {
       checks.write(crab::outs());
     } 
@@ -119,7 +120,7 @@ static checks_db check(analyzer_t& analyzer)
     int verbose = 0;
     if (global_options.print_failures)
       verbose = 2;
-    if (global_options.print_all_checks)
+    if (global_options.print_all_checks_verbose)
       verbose = 3;
     
     using checker_t = intra_checker<analyzer_t>;
@@ -215,7 +216,6 @@ const map<string, domain_desc> domains{
     { "term_dbm"          , { analyze<array_expansion_domain<z_term_dbm_t>>, "mem: (z_term_dbm_t)" } },
     { "term_disj_interval", { analyze<array_expansion_domain<z_term_dis_int_t>>, "mem: term x disjoint intervals (z_term_dis_int_t)" } },
     { "num"               , { analyze<array_expansion_domain<z_num_domain_t>>, "mem: term x disjoint interval x sparse dbm (z_num_domain_t)" } },
-    { "num_boxes"         , { analyze<array_expansion_domain<z_num_boxes_domain_t>>, "mem: term x boxes x sparse dbm" } },
     { "wrapped"           , { analyze<array_expansion_domain<z_wrapped_interval_domain_t>>, "mem: wrapped interval domain (z_wrapped_interval_domain_t)" } },
 #endif
 #ifdef NOMEM_DOMAINS

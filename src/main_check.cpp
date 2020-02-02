@@ -31,8 +31,6 @@ int main(int argc, char **argv)
 {
     // Parse command line arguments:
     
-    crab::CrabEnableWarningMsg(false);
-
     CLI::App app{"A new eBPF verifier"};
 
     std::string filename;
@@ -52,13 +50,19 @@ int main(int argc, char **argv)
 
     bool verbose = false;
     bool run_backward = false;
+    bool disable_liveness = false;
+    bool crab_warnings  = false;
     app.add_flag("-i", global_options.print_invariants, "Print invariants");
     app.add_flag("-f", global_options.print_failures, "Print verifier's failure logs");
-    app.add_flag("-a", global_options.print_all_checks, "Print all verifier's checks");    
+    app.add_flag("-r", global_options.print_all_checks, "Print verifier's results");
+    app.add_flag("-a", global_options.print_all_checks_verbose,
+		 "Print all verifier's checks");        
     app.add_flag("-v", verbose, "Print both invariants and all checks");
     app.add_flag("-s", global_options.stats, "Print verifier stats");
-    app.add_flag("-b", run_backward, "Run forward+backward analysis");        
-
+    app.add_flag("-b", run_backward, "Run forward+backward analysis");
+    app.add_flag("-u", disable_liveness, "Disable liveness analysis");
+    app.add_flag("-w", crab_warnings, "Enable crab warnings");
+    
     std::string asmfile;
     app.add_option("--asm", asmfile, "Print disassembly to FILE")->type_name("FILE");
     std::string dotfile;
@@ -68,9 +72,17 @@ int main(int argc, char **argv)
     app.add_option("--size", size, "size of blowup");
 
     CLI11_PARSE(app, argc, argv);
-    if (verbose)
-        global_options.print_invariants = global_options.print_all_checks = global_options.print_failures = true;
+    
+    if (verbose) {
+        global_options.print_invariants = \
+	  global_options.print_all_checks_verbose = \
+	  global_options.print_failures = true;
+    }
 
+    global_options.liveness = !disable_liveness;
+
+    crab::CrabEnableWarningMsg(crab_warnings);
+    
     // Main program
 
     if (filename == "@headers") {
