@@ -121,7 +121,7 @@ struct array_dom_t {
         var_t ub{vfac["ub"], crab::INT_TYPE, 64};
         block.assign(lb, offset);
         block.assign(ub, offset + width);
-        block.array_store_range(regions, lb, ub, v, 1);
+        block.array_store_range(regions, lb, ub-1, v, 1);
     }
 
     void mark_region(basic_block_t& block, lin_exp_t offset, const var_t v, int width) {
@@ -135,7 +135,7 @@ struct array_dom_t {
         block.assign(lb, offset);
         block.assign(ub, offset + width);
 
-        block.array_store_range(regions, lb, ub, T_NUM, 1);
+        block.array_store_range(regions, lb, ub-1, T_NUM, 1);
 
         var_t scratch{vfac["scratch"], crab::INT_TYPE, 64};
         block.havoc(scratch);
