@@ -19,13 +19,7 @@
 #include <crab/domains/apron_domains.hpp>
 #include <crab/domains/elina_domains.hpp>                
 #include <crab/domains/term_equiv.hpp>
-#include <crab/domains/array_sparse_graph.hpp>                      
-#include <crab/domains/array_smashing.hpp>
 #include <crab/domains/array_expansion.hpp>
-#include <crab/domains/nullity.hpp>
-#include <crab/domains/flat_boolean_domain.hpp>                      
-#include <crab/domains/combined_domains.hpp>                      
-#include <crab/domains/array_sparse_graph.hpp>
 
 namespace crab {
 
