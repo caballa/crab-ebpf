@@ -50,7 +50,7 @@ int main(int argc, char **argv)
 
     bool verbose = false;
     bool run_backward = false;
-    bool disable_liveness = false;
+    bool enable_liveness = false;
     bool crab_warnings  = false;
     app.add_flag("-i", global_options.print_invariants, "Print invariants");
     app.add_flag("-f", global_options.print_failures, "Print verifier's failure logs");
@@ -60,7 +60,8 @@ int main(int argc, char **argv)
     app.add_flag("-v", verbose, "Print both invariants and all checks");
     app.add_flag("-s", global_options.stats, "Print verifier stats");
     app.add_flag("-b", run_backward, "Run forward+backward analysis");
-    app.add_flag("-u", disable_liveness, "Disable liveness analysis");
+    // This might be imprecise with relational domains
+    app.add_flag("-u", enable_liveness, "Enable liveness analysis");
     app.add_flag("-w", crab_warnings, "Enable crab warnings");
     
     std::string asmfile;
@@ -79,7 +80,7 @@ int main(int argc, char **argv)
 	  global_options.print_failures = true;
     }
 
-    global_options.liveness = !disable_liveness;
+    global_options.liveness = enable_liveness;
 
     crab::CrabEnableWarningMsg(crab_warnings);
     
