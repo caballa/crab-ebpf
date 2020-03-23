@@ -20,6 +20,9 @@
 #include <crab/domains/elina_domains.hpp>                
 #include <crab/domains/term_equiv.hpp>
 #include <crab/domains/array_expansion.hpp>
+#include <crab/domains/array_adaptive.hpp>
+
+#define USE_ARRAY_ADAPTIVE
 
 namespace crab {
 
@@ -70,7 +73,7 @@ namespace crab {
       typedef safe_i64 Wt;
       typedef AdaptGraph<Wt> graph_t;
     };
-
+    
     // Numerical domains over integers
     using z_interval_domain_t = interval_domain<ikos::z_number,varname_t>;
     using z_ric_domain_t = numerical_congruence_domain<z_interval_domain_t>;
@@ -81,15 +84,25 @@ namespace crab {
     using z_box_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_INT>;
     using z_oct_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_OCT>;
     using z_pk_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_PK>;
-    using z_zones_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_ZONES>;    
+    using z_zones_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_ZONES>;
     using z_oct_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_OCT>;
     using z_pk_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_PK>;
-    using z_term_domain_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_interval_domain_t> >;
+    using z_term_domain_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_interval_domain_t>>;
     using z_term_dbm_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_sdbm_domain_t> >;
-    using z_term_dis_int_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_dis_interval_domain_t> >;
-    using z_num_domain_t = reduced_numerical_domain_product2<z_term_dis_int_t,z_sdbm_domain_t,reduced_product_impl::term_dbm_params>;
+    using z_term_dis_int_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_dis_interval_domain_t>>;
+    using z_num_domain_t = reduced_numerical_domain_product2<z_term_dis_int_t,z_sdbm_domain_t,
+							     reduced_product_impl::term_dbm_params>;
     using z_num_boxes_domain_t = reduced_numerical_domain_product2<z_boxes_domain_t,z_sdbm_domain_t>;
     // machine arithmetic domains
     using z_wrapped_interval_domain_t = wrapped_interval_domain<ikos::z_number, varname_t>;
+
+    // Array domain
+    #ifdef USE_ARRAY_ADAPTIVE
+    template<typename Dom>
+    using array_domain = array_adaptive_domain<Dom, array_adaptive_impl::NoSmashableParams>;
+    #else
+    template<typename Dom>
+    using array_domain = array_expansion_domain<Dom>;    
+    #endif 
   } 
 }

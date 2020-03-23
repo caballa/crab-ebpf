@@ -152,7 +152,9 @@ void check_semantic_reachability(cfg_t& cfg, analyzer_t& analyzer, checks_db& c)
 template<typename dom_t>
 static checks_db analyze(bool run_backward, cfg_t& cfg, printer_t& pre_printer, printer_t& post_printer)
 {
+#ifndef USE_ARRAY_ADAPTIVE  
     dom_t::clear_global_state();
+#endif     
     //using analyzer_t = intra_fwd_analyzer<cfg_ref<cfg_t>, dom_t>;
     using analyzer_t = intra_forward_backward_analyzer<cfg_ref<cfg_t>, dom_t>;
     
@@ -194,29 +196,29 @@ struct domain_desc {
 
 // ELINA_DOMAINS / APRON_DOMAINS are defined in compiler invocation
 const map<string, domain_desc> domains{
-    { "zoneCrab" , { analyze<array_expansion_domain<z_sdbm_domain_t>>, "zone (crab. split dbm, safe)" } },
-    { "interval" , { analyze<array_expansion_domain<z_interval_domain_t>>   , "interval" } },
+    { "zoneCrab" , { analyze<array_domain<z_sdbm_domain_t>>, "zone (crab. split dbm, safe)" } },
+    { "interval" , { analyze<array_domain<z_interval_domain_t>>   , "interval" } },
 #ifdef ELINA_DOMAINS
-    { "zoneElina", { analyze<array_expansion_domain<z_zones_elina_domain_t>>, "zone (elina)" } },
-    { "octElina" , { analyze<array_expansion_domain<z_oct_elina_domain_t>>  , "octagon (elina)" } },
-    { "polyElina", { analyze<array_expansion_domain<z_pk_elina_domain_t>>   , "polyhedra (elina)" } },
+    { "zoneElina", { analyze<array_domain<z_zones_elina_domain_t>>, "zone (elina)" } },
+    { "octElina" , { analyze<array_domain<z_oct_elina_domain_t>>  , "octagon (elina)" } },
+    { "polyElina", { analyze<array_domain<z_pk_elina_domain_t>>   , "polyhedra (elina)" } },
 #endif
 #ifdef APRON_DOMAINS
     // no zoneApron
-    { "octApron",  { analyze<array_expansion_domain<z_oct_apron_domain_t>> , "octagon (apron)"} },
-    { "polyApron", { analyze<array_expansion_domain<z_pk_apron_domain_t >> , "polyhedra (elina)"} },
+    { "octApron",  { analyze<array_domain<z_oct_apron_domain_t>> , "octagon (apron)"} },
+    { "polyApron", { analyze<array_domain<z_pk_apron_domain_t >> , "polyhedra (elina)"} },
 #endif
 #ifdef OTHER_DOMAINS
-    { "disjInterval"      , { analyze<array_expansion_domain<z_dis_interval_domain_t>>, "mem: disjoint intervals (z_dis_interval_domain_t)" } },
-    { "ric"               , { analyze<array_expansion_domain<z_ric_domain_t>>, "mem: numerical congruence (z_ric_domain_t)" } },
-    { "dbm"               , { analyze<array_expansion_domain<z_dbm_domain_t>>, "mem: sparse dbm (z_dbm_domain_t)" } },
-    { "boxes"             , { analyze<array_expansion_domain<z_boxes_domain_t>>, "mem: boxes (z_boxes_domain_t)" } },
-    { "boxesApron"        , { analyze<array_expansion_domain<z_box_apron_domain_t>> , "mem: boxes (apron)"} },
-    { "term"              , { analyze<array_expansion_domain<z_term_domain_t>>, "mem: (z_term_domain_t)" } },
-    { "term_dbm"          , { analyze<array_expansion_domain<z_term_dbm_t>>, "mem: (z_term_dbm_t)" } },
-    { "term_disj_interval", { analyze<array_expansion_domain<z_term_dis_int_t>>, "mem: term x disjoint intervals (z_term_dis_int_t)" } },
-    { "num"               , { analyze<array_expansion_domain<z_num_domain_t>>, "mem: term x disjoint interval x sparse dbm (z_num_domain_t)" } },
-    { "wrapped"           , { analyze<array_expansion_domain<z_wrapped_interval_domain_t>>, "mem: wrapped interval domain (z_wrapped_interval_domain_t)" } },
+    { "disjInterval"      , { analyze<array_domain<z_dis_interval_domain_t>>, "mem: disjoint intervals (z_dis_interval_domain_t)" } },
+    { "ric"               , { analyze<array_domain<z_ric_domain_t>>, "mem: numerical congruence (z_ric_domain_t)" } },
+    { "dbm"               , { analyze<array_domain<z_dbm_domain_t>>, "mem: sparse dbm (z_dbm_domain_t)" } },
+    { "boxes"             , { analyze<array_domain<z_boxes_domain_t>>, "mem: boxes (z_boxes_domain_t)" } },
+    { "boxesApron"        , { analyze<array_domain<z_box_apron_domain_t>> , "mem: boxes (apron)"} },
+    { "term"              , { analyze<array_domain<z_term_domain_t>>, "mem: (z_term_domain_t)" } },
+    { "term_dbm"          , { analyze<array_domain<z_term_dbm_t>>, "mem: (z_term_dbm_t)" } },
+    { "term_disj_interval", { analyze<array_domain<z_term_dis_int_t>>, "mem: term x disjoint intervals (z_term_dis_int_t)" } },
+    { "num"               , { analyze<array_domain<z_num_domain_t>>, "mem: term x disjoint interval x sparse dbm (z_num_domain_t)" } },
+    { "wrapped"           , { analyze<array_domain<z_wrapped_interval_domain_t>>, "mem: wrapped interval domain (z_wrapped_interval_domain_t)" } },
 #endif
 #ifdef NOMEM_DOMAINS
     { "ric-nomem"               , { analyze<z_ric_domain_t>, "numerical congruence (z_ric_domain_t)" } },
