@@ -150,7 +150,8 @@ int main(int argc, char **argv)
         const auto [res, seconds] = (domain == "linux")
             ? bpf_verify_program(raw_prog.info.program_type, raw_prog.prog)
 	  : abs_validate(cfg, domain, run_backward, raw_prog.info);
-        std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
+        //std::cout << res << "," << seconds << "," << resident_set_size_kb() << "\n";
+	std::cout << (res ? "TRUE" : "FALSE") << "," << seconds << "," << resident_set_size_kb() << "\n";
 	if (global_options.stats) {
 	  crab::CrabStats::PrintBrunch(crab::outs());
 	}
