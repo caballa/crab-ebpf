@@ -163,7 +163,13 @@ struct array_dom_t {
             return {&num_only, &pointer_only};
         } else {
             block.assertion(data_reg.region == T_NUM, di);
-            var_t scratch{vfac["scratch"], crab::INT_TYPE, (unsigned int)width};
+	    // JN: we create two variables with the same name
+	    // "scratch" but different bitwidths. This is not allowed
+	    // by crab.  It's ok to define the variable "scratch" with
+	    // max bitwidth. When an array store, we can still write
+	    // only width bits from "scratch".
+            var_t scratch{vfac["scratch" + std::to_string(width)], crab::INT_TYPE, 64};
+	    
             block.havoc(scratch);
             block.array_store(values, offset, scratch, width);
             block.havoc(scratch);

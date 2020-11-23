@@ -1,3 +1,6 @@
+#CRAB_BRANCH := crab-mdd
+#CRAB_BRANCH := crab-public
+CRAB_BRANCH := crab-soct
 
 BUILDDIR := build
 BINDIR := .
@@ -15,8 +18,9 @@ MAIN_OBJECTS := $(MAIN_SOURCES:${SRCDIR}/%.cpp=${BUILDDIR}/%.o)
 
 OBJECTS := $(filter-out $(MAIN_OBJECTS) $(TEST_OBJECTS),$(ALL_OBJECTS))
 
-CRABDIR := $(abspath external/crab)
+CRABDIR := $(abspath external/$(CRAB_BRANCH))
 LDD := ${CRABDIR}/install/ldd
+MDD := ${CRABDIR}/install/mdd
 INSTALL := ${CRABDIR}/install/crab
 
 # to use APRON, pass MOD=APRON in make invocation
@@ -39,13 +43,13 @@ LDFLAGS += -Wl,-rpath,${MODINSTALL}/lib/
 
 UNAME := $(shell uname)
 
-LIBCRAB = $(INSTALL)/lib/libCrab.a
-# ifeq ($(UNAME),Darwin)
-#     LIBCRAB = $(INSTALL)/lib/libCrab.dylib
-# else
-#     LIBCRAB = $(INSTALL)/lib/libCrab.so
-#     LDFLAGS += -Wl,--disable-new-dtags 
-# endif
+#LIBCRAB = $(INSTALL)/lib/libCrab.a
+ifeq ($(UNAME),Darwin)
+    LIBCRAB = $(INSTALL)/lib/libCrab.dylib
+else
+    LIBCRAB = $(INSTALL)/lib/libCrab.so
+    LDFLAGS += -Wl,--disable-new-dtags 
+endif
 
 LDLIBS := $(LIBCRAB)
 
@@ -88,6 +92,7 @@ CRABFLAGS := \
     -I $(INSTALL)/include/ \
     -I $(LDD)/include/ldd/ \
     -I $(LDD)/include/ldd/include/ \
+    -I $(MDD) \
     -I $(MODINSTALL)/include/
 
 all: $(BINDIR)/check  # $(BINDIR)/unit-test
