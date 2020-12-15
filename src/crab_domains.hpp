@@ -82,6 +82,8 @@ namespace crab {
     using z_dbm_domain_t  = SparseDBM<ikos::z_number,varname_t,DBMGraphParams>;
     using z_sdbm_domain_t = SplitDBM<ikos::z_number,varname_t,DBMGraphParams>;
     using z_soct_domain_t = split_oct_domain<ikos::z_number,varname_t,DBMGraphParams>;
+    using z_pack_sdbm_domain_t = var_packing_domain<z_sdbm_domain_t>;    
+    using z_pack_soct_domain_t = var_packing_domain<z_soct_domain_t>;
     using z_boxes_domain_t = boxes_domain<ikos::z_number,varname_t>;
     using z_dis_interval_domain_t = dis_interval_domain<ikos::z_number, varname_t >;
     using z_box_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_INT>;

@@ -196,9 +196,11 @@ struct domain_desc {
 
 // ELINA_DOMAINS / APRON_DOMAINS are defined in compiler invocation
 const map<string, domain_desc> domains{
+    { "interval" , { analyze<array_domain<z_interval_domain_t>>   , "interval" } },				       
     { "zoneCrab" , { analyze<array_domain<z_sdbm_domain_t>>, "zone (crab. split dbm, safe)" } },
-    { "interval" , { analyze<array_domain<z_interval_domain_t>>   , "interval" } },
-    { "octCrab" , { analyze<array_domain<z_soct_domain_t>>, "octagon (crab. split dbm, safe)" } },      
+    { "octCrab" , { analyze<array_domain<z_soct_domain_t>>, "octagon (crab. split dbm, safe)" } },
+    { "packZoneCrab" , { analyze<array_domain<z_pack_sdbm_domain_t>>, "pack + zone (crab. split dbm, safe)" } },
+    { "packOctCrab" , { analyze<array_domain<z_pack_soct_domain_t>>, "pack + octagon (crab. split dbm, safe)" } },      
 #ifdef ELINA_DOMAINS
     { "zoneElina", { analyze<array_domain<z_zones_elina_domain_t>>, "zone (elina)" } },
     { "packZoneElina" , { analyze<array_domain<z_pack_zones_elina_domain_t>>  , "pack + zone (elina)" } }, 
