@@ -16,9 +16,13 @@
 #include <crab/domains/sparse_dbm.hpp>                      
 #include <crab/domains/split_dbm.hpp>
 #include <crab/domains/split_oct.hpp>
-#include <crab/domains/boxes.hpp>                      
+#include <crab/domains/boxes.hpp>
+#ifdef APRON_DOMAINS
 #include <crab/domains/apron_domains.hpp>
-#include <crab/domains/elina_domains.hpp>                
+#endif
+#ifdef ELINA_DOMAINS
+#include <crab/domains/elina_domains.hpp>
+#endif 
 #include <crab/domains/term_equiv.hpp>
 #include <crab/domains/array_expansion.hpp>
 #include <crab/domains/array_adaptive.hpp>
@@ -86,14 +90,18 @@ namespace crab {
     using z_pack_soct_domain_t = var_packing_domain<z_soct_domain_t>;
     using z_boxes_domain_t = boxes_domain<ikos::z_number,varname_t>;
     using z_dis_interval_domain_t = dis_interval_domain<ikos::z_number, varname_t >;
-    using z_box_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_INT>;
+#ifdef APRON_DOMAINS
     using z_oct_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_OCT>;
+    using z_pack_oct_apron_domain_t = var_packing_domain<z_oct_apron_domain_t>;        
     using z_pk_apron_domain_t = apron_domain<ikos::z_number,varname_t,apron_domain_id_t::APRON_PK>;
+#endif
+#ifdef ELINA_DOMAINS    
     using z_zones_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_ZONES>;
     using z_oct_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_OCT>;
     using z_pack_zones_elina_domain_t = var_packing_domain<z_zones_elina_domain_t>;    
     using z_pack_oct_elina_domain_t = var_packing_domain<z_oct_elina_domain_t>;
     using z_pk_elina_domain_t = elina_domain<ikos::z_number,varname_t,elina_domain_id_t::ELINA_PK>;
+#endif     
     using z_term_domain_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_interval_domain_t>>;
     using z_term_dbm_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_sdbm_domain_t> >;
     using z_term_dis_int_t = term_domain<term::TDomInfo<ikos::z_number,varname_t,z_dis_interval_domain_t>>;

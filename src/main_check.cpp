@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
     std::string domain="zoneCrab";
     std::set<string> doms{"stats", "linux", "rcp"};
-    for (auto const [name, desc] : domain_descriptions())
+    for (auto const &[name, desc] : domain_descriptions())
         doms.insert(name);
     app.add_set("-d,--dom,--domain", domain, doms, "Abstract domain")->type_name("DOMAIN");
 
