@@ -17,6 +17,7 @@ RUN cd / && rm -rf /crab-ebpf && \
 WORKDIR /crab-ebpf
 RUN make crab_install
 RUN make
+ENV LD_LIBRARY_PATH "/crab-ebpf/external/crab/install/elina/lib"
 
 # Run crab-ebpf tests
 
