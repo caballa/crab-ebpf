@@ -1,0 +1,30 @@
+##########################################
+# Workflow to build and test crab-ebpf
+##########################################
+
+name: CI
+
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: master
+  pull_request:
+    branches: master
+  schedule:
+    - cron: 0 0 * * *  # run every day at UTC 00:00
+
+jobs:
+  # This workflow contains a single job called "test"
+  test:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Check out Repo 
+        uses: actions/checkout@v2
+        with:
+          ref: master # only checkout master
+      - name: Build crab-ebpf + run tests 
+        run: docker build -t crab-ebpf -f docker/crab-ebpf.Dockerfile .
